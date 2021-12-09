@@ -1,7 +1,7 @@
 {
   "name": "ts-request-builder",
   "version": "0.0.2",
-  "description": "A React library to make your state management life esier, using React.Context and hooks",
+  "description": "Make your requests and life easier",
   "author": "TachyonVFX, LDA <info@tachyonvfx.com>",
   "keywords": [
     "react",
