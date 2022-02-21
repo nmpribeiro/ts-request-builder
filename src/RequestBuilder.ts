@@ -26,6 +26,8 @@ export class RequestBuilder {
 
   private body: Record<string, unknown> | null = null;
 
+  private plainBody: string | null = null;
+
   private headers: Headers = new Headers();
 
   private method: HTTPMethod = HTTPMethod.GET;
@@ -48,6 +50,11 @@ export class RequestBuilder {
 
   withBody(body: Record<string, unknown> = {}) {
     this.body = body;
+    return this;
+  }
+
+  withPlainBody(body: string = '') {
+    this.plainBody = body;
     return this;
   }
 
@@ -100,9 +107,9 @@ export class RequestBuilder {
     if (
       this.method !== HTTPMethod.GET &&
       this.method !== HTTPMethod.HEAD &&
-      this.body
+      (this.body || this.plainBody)
     )
-      opts.body = JSON.stringify(this.body);
+      opts.body = this.body ? JSON.stringify(this.body) : this.plainBody || '';
     return fetchWithTimeout(this.route, opts, this.timeout);
   }
 

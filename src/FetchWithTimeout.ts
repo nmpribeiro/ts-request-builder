@@ -7,7 +7,7 @@ export const fetchWithTimeout = (
 ): Promise<Response> =>
   Promise.race<Promise<Response>>([
     fetch(requestInfo, requestInit),
-    new Promise((_resolve, reject) =>
+    new Promise<Response>((_resolve, reject) =>
       setTimeout(() => reject(new Error('timeout')), timeout)
     ),
   ]);
