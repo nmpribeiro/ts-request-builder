@@ -19,7 +19,11 @@ export enum HTTPMethod {
   TRACE = 'TRACE',
 }
 
-type ErrorHandlerType<T = any> = (error: T, status: number) => void;
+type ErrorHandlerType<T = any> = (
+  error: T,
+  status?: number,
+  statusText?: string
+) => void;
 
 export class RequestBuilder {
   private route = '';
@@ -114,25 +118,95 @@ export class RequestBuilder {
   }
 
   async build<T>(): Promise<T> {
-    let result: T;
-    const res = await this.request();
-    const contentType = res.headers.get('content-type');
-    const success = res.ok;
-    const { status } = res;
-    if (contentType && contentType.indexOf('application/json') !== -1)
-      result = await res.json();
-    else result = ((await res.text()) as unknown) as T;
+    try {
+      let result: T;
+      const res = await this.request();
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.indexOf('application/json') !== -1)
+        result = await res.json();
+      else result = ((await res.text()) as unknown) as T;
 
-    if (this.debug)
-      // eslint-disable-next-line no-console
-      console.log(
-        'request yielded: ',
-        result,
-        ' was it successfull? ',
-        success ? 'yes' : 'no'
-      );
+      if (this.debug)
+        // eslint-disable-next-line no-console
+        console.log(
+          'request yielded: ',
+          result,
+          ' was it successfull? ',
+          res.ok ? 'yes' : 'no'
+        );
 
-    if (!success && this.errorHandling) this.errorHandling(result, status);
-    return result as T;
+      if (!res.ok && this.errorHandling)
+        this.errorHandling(result, res.status, res.statusText);
+      return result as T;
+    } catch (e) {
+      if (this.errorHandling) this.errorHandling(e);
+      throw e;
+    }
+  }
+
+  async buildAsJson<T>(): Promise<T> {
+    try {
+      const res = await this.request();
+      const result = await res.json();
+      if (this.debug)
+        // eslint-disable-next-line no-console
+        console.log(
+          'request yielded json: ',
+          result,
+          ' was it successfull? ',
+          res.ok ? 'yes' : 'no'
+        );
+
+      if (!res.ok && this.errorHandling)
+        this.errorHandling(result, res.status, res.statusText);
+      return result as T;
+    } catch (e) {
+      if (this.errorHandling) this.errorHandling(e);
+      throw e;
+    }
+  }
+
+  async buildAsText(): Promise<string> {
+    try {
+      const res = await this.request();
+      const result = await res.text();
+      if (this.debug)
+        // eslint-disable-next-line no-console
+        console.log(
+          'request yielded text: ',
+          result,
+          ' was it successfull? ',
+          res.ok ? 'yes' : 'no'
+        );
+
+      if (!res.ok && this.errorHandling)
+        this.errorHandling(result, res.status, res.statusText);
+      return result;
+    } catch (e) {
+      if (this.errorHandling) this.errorHandling(e);
+      throw e;
+    }
+  }
+
+  async buildAsBlob() {
+    try {
+      const res = await this.request();
+      const blob = await res.blob();
+      if (this.debug)
+        // eslint-disable-next-line no-console
+        console.log(
+          'request yielded blob: ',
+          blob,
+          ' was it successfull? ',
+          res.ok ? 'yes' : 'no'
+        );
+
+      if (!res.ok && this.errorHandling)
+        this.errorHandling(res, res.status, res.statusText);
+      return blob;
+    } catch (e) {
+      if (this.errorHandling) this.errorHandling(e);
+      throw e;
+    }
   }
 }
