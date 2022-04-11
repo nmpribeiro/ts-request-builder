@@ -42,6 +42,8 @@ export class RequestBuilder {
 
   private timeout: number = DEFAULT_TIMEOUT;
 
+  private redirect?: RequestRedirect | undefined;
+
   constructor(route: string, private debug = false) {
     this.route = route;
     return this;
@@ -82,6 +84,11 @@ export class RequestBuilder {
     return this;
   }
 
+  withRedirect(redirect: RequestRedirect) {
+    this.redirect = redirect;
+    return this;
+  }
+
   private request() {
     if (this.debug) {
       const debugHeaders: Record<string, string> = {};
@@ -98,14 +105,10 @@ export class RequestBuilder {
       );
     }
 
-    const opts: {
-      method: HTTPMethod;
-      headers: Headers;
-      mode?: RequestMode;
-      body?: string;
-    } = {
+    const opts: RequestInit = {
       method: this.method,
       headers: this.headers,
+      redirect: this.redirect,
     };
     if (this.mode) opts.mode = this.mode;
     if (
