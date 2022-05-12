@@ -44,6 +44,8 @@ export class RequestBuilder {
 
   private redirect?: RequestRedirect | undefined;
 
+  private credentials?: RequestCredentials | undefined;
+
   constructor(route: string, private debug = false) {
     this.route = route;
     return this;
@@ -89,6 +91,11 @@ export class RequestBuilder {
     return this;
   }
 
+  withCredentials(credentials: RequestCredentials) {
+    this.credentials = credentials;
+    return this;
+  }
+
   private request() {
     if (this.debug) {
       const debugHeaders: Record<string, string> = {};
@@ -109,6 +116,7 @@ export class RequestBuilder {
       method: this.method,
       headers: this.headers,
       redirect: this.redirect,
+      credentials: this.credentials,
     };
     if (this.mode) opts.mode = this.mode;
     if (
